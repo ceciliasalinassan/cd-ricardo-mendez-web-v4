@@ -1,19 +1,13 @@
-# Club Deportivo Ricardo Méndez V39
+# Club Deportivo Ricardo Méndez V40
 
 Corrección:
-- Se agregó un script independiente para el botón GUARDAR CONEXIÓN SUPABASE.
-- El botón ahora funciona aunque el script principal tenga problemas.
-- Normaliza automáticamente la URL:
-  https://xzcbdyabzgwfoylipgco.supabase.co/rest/v1/
-  pasa a:
-  https://xzcbdyabzgwfoylipgco.supabase.co
-- Valida que la segunda casilla sea Publishable Key.
-- Muestra mensajes claros y estado conectado/no conectado.
-- Mantiene admin con clave oculta.
+- Los auspiciadores ahora aparecen siempre en la web pública.
+- Se usan los archivos sponsor_01.png a sponsor_17.png como respaldo inicial.
+- Si Supabase aún no tiene auspiciadores, la web carga automáticamente los auspiciadores locales.
+- Diseño de auspiciadores más profesional y no deformado.
+- Cache-busting actualizado a v40.
 
-Uso:
-1. Project URL:
-   https://xzcbdyabzgwfoylipgco.supabase.co
-2. Publishable Key:
-   sb_publishable_...
-3. Presionar GUARDAR CONEXIÓN SUPABASE.
+Después de subir:
+1. Redeploy en Vercel.
+2. Abrir la web pública.
+3. Presionar Ctrl+F5.

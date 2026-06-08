@@ -3,6 +3,8 @@ const ADMIN_WHATSAPP='56994413797';
 const DATA_KEY='clubRMV24';
 const SUPABASE_CONFIG_KEY='clubRMV24SupabaseConfig';
 const SUPABASE_BUCKET='club-assets';
+const DEFAULT_SPONSORS_V40 = [{"name": "SAN PATRICIO MINIMARKET & BOTILLERÍA", "url": "sponsor_01.png"}, {"name": "GPS RUTA", "url": "sponsor_02.png"}, {"name": "RESTAURANT EL CARIBE", "url": "sponsor_03.png"}, {"name": "CONSTRUCTORA VENEGAS PRADENAS", "url": "sponsor_04.png"}, {"name": "CONSTRUCTORA BELTRÁN", "url": "sponsor_05.png"}, {"name": "FERRETERÍA PARRALITO", "url": "sponsor_06.png"}, {"name": "ARRIENDO DE MAQUINARIAS MENORES V&V SPA", "url": "sponsor_07.png"}, {"name": "DISTRIBUIDORA LA MAQUILA", "url": "sponsor_08.png"}, {"name": "RESTAURANT LA CASERITA", "url": "sponsor_09.png"}, {"name": "EL MAESTRO DE LA PARRILLA JUAN CRIOLLO", "url": "sponsor_10.png"}, {"name": "PEÑAFRUT", "url": "sponsor_11.png"}, {"name": "FUTBAR PITU", "url": "sponsor_12.png"}, {"name": "LA ESPIGA DE ORO", "url": "sponsor_13.png"}, {"name": "COMPLEJO EL CASTAÑO", "url": "sponsor_14.png"}, {"name": "CASCADAS DE ÑUBLE", "url": "sponsor_15.png"}, {"name": "MAOR", "url": "sponsor_16.png"}, {"name": "DON LUCHITO CECINAS", "url": "sponsor_17.png"}];
+
 const OFFICIAL_STANDINGS = {
   "SERIE PRIMERA ADULTOS": [
     {
@@ -1139,7 +1141,8 @@ const DEFAULTS={
   news:[{title:'Inicio de temporada',text:'El club prepara sus series para una nueva competencia.',date:'Publicado por administración',image:''},{title:'Campaña de socios',text:'Súmate a la familia del Club Deportivo Ricardo Méndez.',date:'Publicado por administración',image:''}],
   media:[], fixtureImages:[{"title": "Fixture Fecha 1", "image": "fixture_fecha_1.jpeg"}, {"title": "Fixture Fecha 2", "image": "fixture_fecha_2.jpeg"}, {"title": "Fixture Fecha 3", "image": "fixture_fecha_3.jpeg"}, {"title": "Fixture Fecha 4", "image": "fixture_fecha_4.jpeg"}, {"title": "Fixture Fecha 5", "image": "fixture_fecha_5.jpeg"}, {"title": "Fixture Fecha 6", "image": "fixture_fecha_6.jpeg"}],
   fixture:[],
-  standings:emptyStandings(), sponsors:[], requests:[],
+  standings:emptyStandings(), sponsors: DEFAULT_SPONSORS_V40,
+   requests:[],
   results:[{date:'07/06',match:'Ricardo Méndez vs Chacay',score:'3 - 1',scorers:'Goleadores por confirmar'},{date:'01/06',match:'Ricardo Méndez vs Unión',score:'2 - 0',scorers:'Goleadores por confirmar'}],
   directiva:[{role:'Presidente',name:'Información pendiente'},{role:'Secretario',name:'Información pendiente'},{role:'Tesorero',name:'Información pendiente'}],
   presidents:[],
@@ -1394,20 +1397,14 @@ function centerOnTransparentCanvas(canvas,outW=900,outH=900,fill=.86){const out=
 
 function animateNumber(el,target){if(!el)return; const end=parseInt(target)||0, dur=1200, start=performance.now(); function tick(t){const p=Math.min((t-start)/dur,1); el.textContent=Math.round(end*(1-Math.pow(1-p,3))); if(p<1)requestAnimationFrame(tick);} requestAnimationFrame(tick)}
 
-function render(){const d=getData();
+function render(){const d=ensureSponsorsData(getData());
  text('siteClubName',d.clubName); text('mainTitle',d.mainTitle); text('mainSubtitle',d.subtitle); text('mainDescription',d.description); text('clubHistory',d.history); text('clubPresident',d.president); text('anniversaryText',d.anniversary); const hp=$('historyPhotoPublic'); if(hp){hp.src=d.historyPhoto||''; hp.style.display=d.historyPhoto?'block':'none';}
  [['metricSeries',d.metrics.series],['metricSocios',d.metrics.socios],['metricYears',d.metrics.years],['metricTitles',d.metrics.titles],['metricSponsors',d.metrics.sponsors]].forEach(([id,val])=>{const el=$(id); if(el){el.dataset.count=val; animateNumber(el,val)}}); text('metricAnniversary',d.metrics.anniversary);
  ['instagramTop','instagramPublic'].forEach(id=>{const el=$(id); if(el)el.href=d.instagram}); ['facebookTop','facebookPublic'].forEach(id=>{const el=$(id); if(el)el.href=d.facebook}); const wa=$('whatsappPublic'); if(wa)wa.href=`https://wa.me/${d.whatsapp||ADMIN_WHATSAPP}`;
  const m=d.nextMatch; text('homeTeamName','Ricardo Méndez'); text('rivalNamePublic',m.rival); text('nextMatchPublic',`${m.date} · ${m.hour}`); text('nextPlacePublic',m.place); const rl=$('rivalLogoPublic'); if(rl){rl.src=m.logo||''; rl.style.display=m.logo?'block':'none'}
  renderSponsors(d); renderNews(d); renderGallery(d); renderFixture(d); renderStandings(); renderSeriesScoreChart(); renderCumulative(); renderResults(d); renderRanking(); renderPride(); renderDirectiva(d); renderPresidents(d); renderPalmares(d); renderTimeline(d); renderAdminLists(d); renderRequests()}
 function sponsorCard(s){return `<article><div class="sponsor-logo"><img src="${s.url}" alt="${s.name}" onerror="this.closest('article').style.display='none'"></div><h3>${s.name}</h3></article>`}
-function renderSponsors(d){const sec=document.querySelector('.top-sponsors'),top=$('topSponsorGrid'); if(!sec||!top)return; if(!d.sponsors.length){sec.style.display='none'; top.innerHTML=''; return} sec.style.display='block'; top.innerHTML=[...d.sponsors,...d.sponsors,...d.sponsors].map(sponsorCard).join('')}
-function renderNews(d){const g=$('newsGrid'); if(!g)return; g.innerHTML=d.news.map(n=>`<article><div class="thumb" style="${n.image?`background-image:linear-gradient(135deg,rgba(0,187,255,.18),rgba(215,170,49,.12)),url('${n.image}')`:''}"></div><h3>${n.title}</h3><p>${n.text}</p><small>${n.date}</small></article>`).join('')}
-function renderGallery(d){const g=$('galleryGrid'); if(!g)return; g.innerHTML=d.media.map(m=>`<article>${m.type==='Video'?`<video src="${m.url}" controls></video>`:`<img src="${m.url}" alt="${m.title}">`}<div><h3>${m.title}</h3><p>${m.type}</p></div></article>`).join('')}
-function renderFixture(d){
-  const g=$('fixtureImageGrid'); if(!g)return;
-  g.innerHTML=(d.fixtureImages||[]).map(f=>`<article><img src="${f.image}" alt="${f.title}" onerror="this.style.display='none'"><div><h3>${f.title}</h3></div></article>`).join('');
-}
+
 function rmSeriesRows(){
   const d=getData();
   return SERIES.map(serie=>{
@@ -1644,17 +1641,7 @@ function renderMedia(d){
   }).join('');
 }
 
-function renderSponsors(d){
-  d = d || getData();
-  const row = $('sponsorsRow') || $('sponsorsGrid');
-  if(!row) return;
-  row.innerHTML = (d.sponsors||[]).map(s=>`
-    <article class="sponsor-card">
-      <img src="${s.url}" alt="${s.name||'Auspiciador'}">
-      <h3>${s.name||''}</h3>
-    </article>
-  `).join('');
-}
+
 
 function renderDirectiva(d){
   d = d || getData();
@@ -1717,6 +1704,38 @@ function renderPresidents(d){
     window[fn] = function(){ console.warn(fn + ' no estaba definida, se usó fallback.'); };
   }
 });
+
+
+/* V40: auspiciadores siempre visibles */
+function ensureSponsorsData(d){
+  d = d || getData();
+  if(!d.sponsors || !Array.isArray(d.sponsors) || d.sponsors.length === 0){
+    d.sponsors = DEFAULT_SPONSORS_V40.map(s=>({...s}));
+    if(d.metrics) d.metrics.sponsors = String(d.sponsors.length);
+    try{ saveData(d); }catch(e){}
+  }
+  return d;
+}
+
+function renderSponsors(d){
+  d = ensureSponsorsData(d);
+  const targets = [
+    $('sponsorsRow'), $('sponsorsGrid'), $('sponsorsPublicGrid'), $('sponsorsSlider')
+  ].filter(Boolean);
+
+  if(!targets.length) return;
+
+  const html = (d.sponsors||[]).map(s=>`
+    <article class="sponsor-card sponsor-card-pro">
+      <div class="sponsor-logo-box">
+        <img src="${s.url}" alt="${s.name||'Auspiciador'}" loading="lazy">
+      </div>
+      <h3>${s.name||''}</h3>
+    </article>
+  `).join('');
+
+  targets.forEach(t=>t.innerHTML = html);
+}
 
 function setup(){$('standingSerieSelect')?.addEventListener('change',renderStandings); document.querySelectorAll('.serie-pill').forEach(btn=>btn.addEventListener('click',()=>{$('standingSerieSelect').value=btn.dataset.serie; document.querySelector('#posiciones')?.scrollIntoView({behavior:'smooth'}); renderStandings()}));
  $('memberRequestForm')?.addEventListener('submit',async e=>{e.preventDefault(); const d=getData(),s={name:memberName.value,rut:memberRut.value,phone:memberPhone.value,type:memberType.value}; d.requests.push(s); await onlineSave(d); const msg=`Nueva solicitud de socio Club Deportivo Ricardo Méndez:%0A%0ANombre: ${encodeURIComponent(s.name)}%0ARUT: ${encodeURIComponent(s.rut)}%0ATeléfono: ${encodeURIComponent(s.phone)}%0ATipo: ${encodeURIComponent(s.type)}`; window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${msg}`,'_blank'); e.target.reset(); renderRequests()});
