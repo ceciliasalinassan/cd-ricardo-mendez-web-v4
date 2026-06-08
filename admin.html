@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin - Club Deportivo Ricardo Méndez</title>
-  <link rel="stylesheet" href="styles.css?v=38" />
+  <link rel="stylesheet" href="styles.css?v=39" />
 </head>
 <body class="admin-body">
   <div class="real-stadium-bg"></div>
@@ -135,7 +135,7 @@
   
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=38"></script>
+  <script src="script.js?v=39"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function(){
       const ADMIN_PASS_PRIVATE = 'admin1932';
@@ -192,6 +192,122 @@ if ('serviceWorker' in navigator) {
 if (window.caches) {
   caches.keys().then(keys => keys.filter(k => k !== 'club-rm-v29').forEach(k => caches.delete(k)));
 }
+</script>
+
+
+<script>
+/* V39: conexión Supabase independiente para Admin */
+(function(){
+  const CONFIG_KEY = 'clubRMV24SupabaseConfig';
+
+  function $(id){ return document.getElementById(id); }
+
+  function normalizeSupabaseUrl(value){
+    let url = String(value || '').trim();
+
+    if(url && !url.startsWith('http') && !url.includes('.supabase.co')){
+      url = 'https://' + url + '.supabase.co';
+    }
+
+    url = url.replace(/\/rest\/v1\/?$/,'');
+    url = url.replace(/\/$/,'');
+
+    return url;
+  }
+
+  function setStatus(msg){
+    const el = $('supabaseStatus');
+    if(el) el.textContent = msg;
+  }
+
+  async function testConnection(url, key){
+    if(!window.supabase){
+      throw new Error('La librería Supabase no cargó.');
+    }
+
+    const client = window.supabase.createClient(url, key);
+    const { error } = await client.from('settings').select('key').limit(1);
+
+    if(error) throw error;
+
+    window.supabaseClient = client;
+    window.supabaseOnline = true;
+    return true;
+  }
+
+  async function saveConnection(){
+    const urlInput = $('supabaseUrlInput');
+    const keyInput = $('supabaseAnonInput');
+
+    if(!urlInput || !keyInput){
+      alert('No se encontraron los campos de Supabase.');
+      return;
+    }
+
+    const url = normalizeSupabaseUrl(urlInput.value);
+    const key = String(keyInput.value || '').trim();
+
+    urlInput.value = url;
+
+    if(!url.startsWith('https://') || !url.includes('.supabase.co')){
+      setStatus('Estado: URL incorrecta.');
+      alert('Project URL incorrecta. Usa: https://xzcbdyabzgwfoylipgco.supabase.co');
+      return;
+    }
+
+    if(!key.startsWith('sb_publishable_') && !key.startsWith('eyJ')){
+      setStatus('Estado: Publishable Key incorrecta.');
+      alert('Debes pegar la Publishable Key completa. No pegues la URL ni la Secret Key.');
+      return;
+    }
+
+    if(key.startsWith('sb_secret_') || key.toLowerCase().includes('secret')){
+      setStatus('Estado: error. No uses Secret Key.');
+      alert('No uses Secret Key en la web. Usa solamente la Publishable Key.');
+      return;
+    }
+
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({url:url, anonKey:key}));
+    setStatus('Estado: conexión guardada. Probando Supabase...');
+
+    try{
+      await testConnection(url, key);
+      setStatus('Estado: conectado a Supabase.');
+      alert('Conexión Supabase guardada correctamente.');
+    }catch(e){
+      console.error('Error Supabase:', e);
+      setStatus('Estado: conexión guardada, pero la prueba falló: ' + (e.message || 'error desconocido'));
+      alert('Se guardó la conexión, pero la prueba falló. Revisa que el SQL esté ejecutado y que la Publishable Key esté completa.');
+    }
+  }
+
+  function loadSaved(){
+    try{
+      const cfg = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
+      if(cfg.url && $('supabaseUrlInput')) $('supabaseUrlInput').value = normalizeSupabaseUrl(cfg.url);
+      if(cfg.anonKey && $('supabaseAnonInput')) $('supabaseAnonInput').value = cfg.anonKey;
+    }catch(e){}
+  }
+
+  function bind(){
+    loadSaved();
+
+    const saveBtn = $('saveSupabaseConfig');
+    if(saveBtn){
+      saveBtn.onclick = function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        saveConnection();
+      };
+    }
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bind);
+  }else{
+    bind();
+  }
+})();
 </script>
 
 </body>
