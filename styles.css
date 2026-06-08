@@ -1367,3 +1367,7 @@ img[alt]{
   object-fit:cover;
   border-radius:16px;
 }
+
+/* V38 presidentes seguro */
+.presidents-grid article{min-height:160px}
+.presidents-grid article h3{color:#ffe797}

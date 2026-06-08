@@ -1683,6 +1683,41 @@ function renderTimeline(d){
   `).join('');
 }
 
+
+/* V38: renderPresidents y protección final de render */
+function renderPresidents(d){
+  d = d || getData();
+  const g = $('presidentsGrid');
+  if(!g) return;
+  const rows = d.presidents || [];
+  if(!rows.length){
+    g.innerHTML = '<article><h3>Galería pendiente</h3><p>Aún no hay presidentes cargados.</p></article>';
+    return;
+  }
+  g.innerHTML = rows.map(p=>`
+    <article>
+      ${p.image ? `<img src="${p.image}" alt="${p.name||'Presidente'}" onerror="this.style.display='none'">` : ''}
+      <div>
+        <h3>${p.name||''}</h3>
+        <p>${p.period||''}</p>
+      </div>
+    </article>
+  `).join('');
+}
+
+/* Si alguna función de render falta, se crea vacía para que no corte Supabase */
+[
+  'renderFixture','renderHistory','renderNextMatch','renderMetrics','renderPositions',
+  'renderRequests','renderCumulative','renderRanking','renderPride',
+  'renderSeriesScoreChart','renderAdminLists','renderStandings','renderResults',
+  'renderNews','renderMedia','renderSponsors','renderDirectiva','renderPalmares',
+  'renderTimeline','renderPresidents'
+].forEach(fn=>{
+  if(typeof window[fn] !== 'function'){
+    window[fn] = function(){ console.warn(fn + ' no estaba definida, se usó fallback.'); };
+  }
+});
+
 function setup(){$('standingSerieSelect')?.addEventListener('change',renderStandings); document.querySelectorAll('.serie-pill').forEach(btn=>btn.addEventListener('click',()=>{$('standingSerieSelect').value=btn.dataset.serie; document.querySelector('#posiciones')?.scrollIntoView({behavior:'smooth'}); renderStandings()}));
  $('memberRequestForm')?.addEventListener('submit',async e=>{e.preventDefault(); const d=getData(),s={name:memberName.value,rut:memberRut.value,phone:memberPhone.value,type:memberType.value}; d.requests.push(s); await onlineSave(d); const msg=`Nueva solicitud de socio Club Deportivo Ricardo Méndez:%0A%0ANombre: ${encodeURIComponent(s.name)}%0ARUT: ${encodeURIComponent(s.rut)}%0ATeléfono: ${encodeURIComponent(s.phone)}%0ATipo: ${encodeURIComponent(s.type)}`; window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${msg}`,'_blank'); e.target.reset(); renderRequests()});
  const openModal=()=>{ const m=$('adminModal'); if(m) m.classList.add('show'); }; $('openAdmin')?.addEventListener('click',openModal); $('openAdminTop')?.addEventListener('click',openModal); $('closeAdmin')?.addEventListener('click',()=>{ const m=$('adminModal'); if(m) m.classList.remove('show'); });
